@@ -29,7 +29,7 @@ void setup() {
   pinMode(blue, OUTPUT);
   pinMode(green, OUTPUT);
   pinMode(pumpin, OUTPUT);   
-  digitalWrite(pumpin, HIGH);//pump is set to it's off state
+  digitalWrite(pumpin, LOW);//pump is set to it's off state
   Serial.begin(9600);   //serial communication is started at frequency 9600
  }
 
