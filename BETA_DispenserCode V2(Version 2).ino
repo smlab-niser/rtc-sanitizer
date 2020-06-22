@@ -55,7 +55,11 @@ void setup() {
   for(int n=0; n<<7; n++){
   pinMode(n, OUTPUT);
   }
+ 
   pinMode(13, OUTPUT);
+  pinMode(red, OUTPUT);
+  pinMode(green, OUTPUT);
+  pinMode(blue, OUTPUT);
   pinMode(12, INPUT);
   pinMode(11, INPUT);
   pinMode(10, INPUT);
@@ -68,9 +72,9 @@ void loop() {
    //we'll start with reading the potentiometer value
     potval=(analogRead(regpin));//value of potentiometer is read, to set the active time for pump per stimulus
     timer= ((maxtime/1023)*potval);
-    analogWrite(blue,1023);     //in standby state, the indicator is blue
-    analogWrite(green,0);     //green is off right now. blue will be replaced with green when machine is activated
-    analogWrite(red, 0);      //red indicator is off right now, it'll be on when the reset function is activated.
+    digitalWrite(blue, HIGH);     //in standby state, the indicator is blue
+    digitalWrite(green,LOW);     //green is off right now. blue will be replaced with green when machine is activated
+    digitalWrite(red, LOW);      //red indicator is off right now, it'll be on when the reset function is activated.
 //STEP 1: Loop initialisation
      //STEP 1-A: Start the program by an option to reset the counter. if someone holds the reset button for 3 seconds, the counter resets
        if((debounce(resetpin))==HIGH){
@@ -97,8 +101,8 @@ void loop() {
       //STEP 2-A: sensor is checked
          if((digitalRead(sensorpin))== HIGH){
       //STEP 2-B: necessary indicators are given/changed
-            analogWrite(blue,0);
-            analogWrite(green,1023);
+            digitalWrite(blue,LOW);
+            digitalWrite(green,HIGH);
       //STEP 2-C: pump is activated to begin the dispensing.
             digitalWrite(pumpin, HIGH);
             delay(timer);
@@ -107,8 +111,8 @@ void loop() {
             counter = counter+timer;
             EEPROM.put(0, counter);
      //STEP 2-E: necessary indicators are given/changed       
-            analogWrite(green,0);
-            analogWrite(blue,1023);
+            digitalWrite(green,LOW);
+            digitalWrite(blue,HIGH);
          }
 //*******************************Action  completed**************************************************
         
@@ -118,7 +122,7 @@ void loop() {
          
         }
          delay(200);
-         analogWrite(blue,0);
+         digitalWrite(blue,LOW);
          delay(300);
 }
 
@@ -139,18 +143,18 @@ bool debounce(int pin){
 
 //FUNCTION 2: reset function will reset the counter and 0 address of the EEPROM to 0 when called for
 void reset(){
-  analogWrite(blue, 0);
-  analogWrite(red, 1023);
+  digitalWrite(blue, LOW);
+  digitalWrite(red, HIGH);
   delay(3000);    // it is required to hold the button for 3 seconds for the reset function to begin it's job
   // after 3 seconds, another reading is taken, which, if matched HIGH, will reset the values
   if((debounce(resetpin)) == 1){ 
-       analogWrite(red, 0);
+       digitalWrite(red, LOW);
        EEPROM.put(0,0);
        EEPROM.get(0,counter);
        delay(1000);
      }
   
-  analogWrite(blue, 1023);
+  digitalWrite(blue, HIGH);
   }
 
  //FUNCTION 3: this function will display the counter on a 7 segment display when activated with a button.
