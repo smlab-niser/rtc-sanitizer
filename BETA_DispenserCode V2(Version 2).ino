@@ -52,7 +52,7 @@ void setup() {
   EEPROM.get(0, counter); // obtain the last value of total dispense time from EEPROMs first memory address into counter variable.
   pinMode(sensorpin, INPUT); 
   
-  for(int n=0; n<<7; n++){
+  for(int n=2; n<<9; n++){
   pinMode(n, OUTPUT);
   }
  
