@@ -32,7 +32,7 @@ int timer;//timer is the pump activation time set using the potentiometer connec
  
 
 //the following chart is for the coding of a 7 segment led display which will display counter when required
-bool statepan[12][7]={{1,1,1,1,1,1,0}, //0   //code is based on the circuit discussed at: https://www.allaboutcircuits.com/projects/interface-a-seven-segment-display-to-an-arduino/
+int statepan[12][7]={{1,1,1,1,1,1,0}, //0   //code is based on the circuit discussed at: https://www.allaboutcircuits.com/projects/interface-a-seven-segment-display-to-an-arduino/
                      {0,1,1,0,0,0,0},  //1
                      {1,1,0,1,1,0,1},  //2
                      {1,1,1,1,0,0,1},  //3
@@ -43,7 +43,7 @@ bool statepan[12][7]={{1,1,1,1,1,1,0}, //0   //code is based on the circuit disc
                      {1,1,1,1,1,1,1},  //8
                      {1,1,1,1,0,1,1},  //9
                      {0,0,0,0,0,0,1},  //-
-                     {0,0,0,0,0,0,1}}; //off.
+                     {0,0,0,0,0,0,0}}; //off.
 
 //********************************************************************************************************************
 //********************************************************************************************************************
@@ -55,21 +55,24 @@ void setup() {
   for(int n=2; n<<9; n++){
   pinMode(n, OUTPUT);
   }
+  for(int n=2; n<<9; n++){
+  digitalWrite(n, LOW);
+  }
  
-  pinMode(13, OUTPUT);
+  pinMode(pumpin, OUTPUT);
   pinMode(red, OUTPUT);
   pinMode(green, OUTPUT);
   pinMode(blue, OUTPUT);
-  pinMode(12, INPUT);
-  pinMode(11, INPUT);
-  pinMode(10, INPUT);
+  pinMode(sensorpin, INPUT);
+  pinMode(readpin, INPUT);
+  pinMode(resetpin, INPUT);
   
   digitalWrite(pumpin, LOW);//pump is set to it's off state
   Serial.begin(9600);   //serial communication is started at frequency 9600
  }
 
 void loop() {
-   //we'll start with reading the potentiometer value
+  //we'll start with reading the potentiometer value
     potval=(analogRead(regpin));//value of potentiometer is read, to set the active time for pump per stimulus
     timer= ((maxtime/1023)*potval);
     digitalWrite(blue, HIGH);     //in standby state, the indicator is blue
@@ -83,15 +86,19 @@ void loop() {
 
        if((debounce(readpin))==HIGH){
           readfunction(counter);
-        }
+        
+       }
   
      // STEP 1-B: with every loop, the information about the current statistics is printed in the serial monitor
         Serial.print("Current value of counter is: ");
         Serial.println(counter);
+  		Serial.println("-------------------------------");
+        
       //  Serial.print("and amount of sanitizer dispensed in mililiter is approximately =  ");
         //Serial.println((counter*rate));
         Serial.print("current value of pump activation time (In Mili Seconds) is");
         Serial.println((timer));
+  		Serial.println("================================");
         
         delay(100);
 //*********************initialisation complete*****************************************************
@@ -121,9 +128,9 @@ void loop() {
           digitalWrite(pumpin, LOW);
          
         }
-         delay(200);
+         delay(100);
          digitalWrite(blue,LOW);
-         delay(300);
+         delay(200);
 }
 
 
@@ -136,7 +143,7 @@ bool debounce(int pin){
   delay(30);                // this delay makes it possible to take two readings at 30 milisecond gap for verification of a desired activation of the button
   int B = digitalRead(pin);
   if(A == B){return A;}
-  else{debounce(resetpin);}
+  else{debounce(pin);}
   }
 
 
@@ -157,21 +164,30 @@ void reset(){
   digitalWrite(blue, HIGH);
   }
 
- //FUNCTION 3: this function will display the counter on a 7 segment display when activated with a button.
-  void readfunction(long data){
+//FUNCTION 3: this function will display the counter on a 7 segment display when activated with a button.
+  void readfunction(int data){
   leddisplay(11);
   delay(1000);
-  int arr[12];
-  int i=11;
+    int arr[10]={0};
+  int i=9;
   while(i>=0){
-    arr[(11-(i))]= (long(data/((pow(10,i))))) - (long(data/((pow(10,(i+1)))))*10);
-    leddisplay((arr[(19-i)]));
+    arr[(9-(i))]= (int(data/((pow(10,i))))) - (int(data/((pow(10,(i+1)))))*10);
+   //Serial.println((arr[(9-i)]));
+    leddisplay((arr[(9-i)]));
     delay(1000);
     i--;
+    Serial.print((9-i));
+    Serial.println("th digit printed");
+     Serial.println("+++++++++++++++++++");
+    
   }
-  leddisplay(11);
+  leddisplay(10);
   delay(1000);
-  leddisplay(12);
+ 
+    Serial.println("End of function");
+     leddisplay(11);
+    Serial.println("/////////////");
+    
   }
 
 
@@ -180,9 +196,12 @@ void reset(){
 
   void leddisplay(int k){
   int l=2;
-  while(l <<9){
-  digitalWrite(l, (!(statepan[k][(l-2)])));
+  while(l <9){
+  Serial.println((statepan[k][(l-2)]));
+    digitalWrite(l, ((statepan[k][(l-2)])));
+    l++;
+    Serial.println("----------");
   }
+    
+    
   }
-
- 
