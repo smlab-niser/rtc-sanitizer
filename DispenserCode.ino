@@ -6,14 +6,14 @@
 
 //Pump activation, sensor, RGB LEDs and Reset button are wired according to the following allocation: 
 
-int counter=0;  //total time for which motor has dispensed the liquid so far.
+long counter=0;  //total time for which motor has dispensed the liquid so far.
 int pumpin=6; // the pin designated for activation of the pump
 int rate= 5; //rate of flow for the pump in Ml/Sec
 int sensorpin = 7;  //arduino pin the sensor is plugged to 
 int regpin = A0;  //pin which is connected to potentiometer- designated to control the time of pump activation for dispensing.
-int potval;
+long potval;
 int maxtime=2500; //the maximum caliberatable activation time for each pump cycle
-int timer;//timer is the pump activation time set using the potentiometer connected to regpin: min time is 10 milimeter,max time is 2.5 seconds right now.
+long timer;//timer is the pump activation time set using the potentiometer connected to regpin: min time is 10 milimeter,max time is 2.5 seconds right now.
 int resetpin = 3; // button to activate counter reset function : as per code, it'll be activated if button is contineously pressed for more then 3 seconds
 int red = 9;    //red led pin : designated to illuminate when memory reset function is activated.
 int green = 10; //green led pin : designated to illuminate when dispensing is activated
