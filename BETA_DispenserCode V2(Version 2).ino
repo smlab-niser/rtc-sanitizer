@@ -23,11 +23,11 @@ int red = A1;    //red led pin : designated to illuminate when memory reset func
 int green = A2; //green led pin : designated to illuminate when dispensing is activated
 int blue = A3;  //blue led pin : designated to blink in standby state
 
-int counter=0;  //total time for which motor HAS dispensed the liquid so far.
+long counter=0;  //total time for which motor HAS dispensed the liquid so far.
 int rate= 5; //rate of flow for the pump in Ml/Sec
-int potval; //value of the potentiometer
+long potval; //value of the potentiometer
 int maxtime=2500; //the maximum caliberatable activation time for each pump cycle
-int timer;//timer is the pump activation time set using the potentiometer connected to regpin: min time is 10 milimeter,max time is 2.5 seconds right now.
+long timer;//timer is the pump activation time set using the potentiometer connected to regpin: min time is 10 milimeter,max time is 2.5 seconds right now.
 
  
 
@@ -44,6 +44,7 @@ int statepan[12][7]={{1,1,1,1,1,1,0}, //0   //code is based on the circuit discu
                      {1,1,1,1,0,1,1},  //9
                      {0,0,0,0,0,0,1},  //-
                      {0,0,0,0,0,0,0}}; //off.
+
 
 //********************************************************************************************************************
 //********************************************************************************************************************
@@ -69,64 +70,83 @@ void setup() {
   
   digitalWrite(pumpin, LOW);//pump is set to it's off state
   Serial.begin(9600);   //serial communication is started at frequency 9600
- }
+
+}
 
 void loop() {
-  //we'll start with reading the potentiometer value
-    potval=(analogRead(regpin));//value of potentiometer is read, to set the active time for pump per stimulus
-    timer= ((maxtime/1023)*potval);
+//STEP 1: Loop initialisation
+  //we'll start with reading the potentiometer value and setting the timer value according to that
+  potval=(analogRead(regpin));//value of potentiometer is read, to set the active time for pump per stimulus
+  timer= ((maxtime/1023)*potval);
+  //next is necessary LED indications.
     digitalWrite(blue, HIGH);     //in standby state, the indicator is blue
     digitalWrite(green,LOW);     //green is off right now. blue will be replaced with green when machine is activated
     digitalWrite(red, LOW);      //red indicator is off right now, it'll be on when the reset function is activated.
-//STEP 1: Loop initialisation
+
      //STEP 1-A: Start the program by an option to reset the counter. if someone holds the reset button for 3 seconds, the counter resets
        if((debounce(resetpin))==HIGH){
           reset();
         }
-
        if((debounce(readpin))==HIGH){
-          readfunction(counter);
-        
+          readfunction(counter);     
        }
   
      // STEP 1-B: with every loop, the information about the current statistics is printed in the serial monitor
         Serial.print("Current value of counter is: ");
         Serial.println(counter);
-  		Serial.println("-------------------------------");
-        
-      //  Serial.print("and amount of sanitizer dispensed in mililiter is approximately =  ");
-        //Serial.println((counter*rate));
+        Serial.println("-------------------------------");   
+      //Serial.print("and amount of sanitizer dispensed in mililiter is approximately =  ");
+      //Serial.println((counter*rate));
+      //Serial.println("-------------------------------");  
         Serial.print("current value of pump activation time (In Mili Seconds) is");
         Serial.println((timer));
-  		Serial.println("================================");
+        Serial.println("================================");
         
         delay(100);
 //*********************initialisation complete*****************************************************
   
+  //in pumping step, if counter is about to hitting it's limit, normal operation needs to be changed so as to force user to reset the counter.
+  //so, if counter > 1900000050 then give necessary indications while pumping, else pump normally.
 
 //STEP 2: the sensor status is checked and if activated, dispensor is activated 
       //STEP 2-A: sensor is checked
          if((digitalRead(sensorpin))== HIGH){
       //STEP 2-B: necessary indicators are given/changed
-            digitalWrite(blue,LOW);
-            digitalWrite(green,HIGH);
+           if(counter<1900000050){      // i.e. normal pumping action.
+             digitalWrite(blue,LOW);
+             digitalWrite(green,HIGH);
       //STEP 2-C: pump is activated to begin the dispensing.
             digitalWrite(pumpin, HIGH);
             delay(timer);
             digitalWrite(pumpin, LOW);
      // STEP 2-D: conter value is increased and EEPROM value is set to counter value.
-            counter = counter+timer;
+            counter = counter+timer; 
             EEPROM.put(0, counter);
      //STEP 2-E: necessary indicators are given/changed       
             digitalWrite(green,LOW);
             digitalWrite(blue,HIGH);
+           }
+         if(counter>1900000050){  //i.e. pumping action for when the counter is full.
+             digitalWrite(blue,LOW);
+             digitalWrite(red,HIGH);
+             digitalWrite(pumpin, HIGH);
+             delay(timer);
+             digitalWrite(pumpin, LOW);
+             for(int s=1; s<=3;s++){
+                leddisplay(10);
+                delay(300);
+                leddisplay(11);
+                delay(300);
+               }
+             digitalWrite(red,LOW);
+             digitalWrite(blue,HIGH);
+           }
          }
 //*******************************Action  completed**************************************************
         
         else{
         //in lack of an activation from sensor, always pull the pump to off position.
-          digitalWrite(pumpin, LOW);
-         
+          digitalWrite(pumpin, LOW);         
         }
          delay(100);
          digitalWrite(blue,LOW);
@@ -160,48 +180,45 @@ void reset(){
        EEPROM.get(0,counter);
        delay(1000);
      }
-  
   digitalWrite(blue, HIGH);
   }
 
+
 //FUNCTION 3: this function will display the counter on a 7 segment display when activated with a button.
   void readfunction(int data){
-  leddisplay(11);
-  delay(1000);
-    int arr[10]={0};
-  int i=9;
-  while(i>=0){
-    arr[(9-(i))]= (int(data/((pow(10,i))))) - (int(data/((pow(10,(i+1)))))*10);
-   //Serial.println((arr[(9-i)]));
-    leddisplay((arr[(9-i)]));
+    leddisplay(11);
     delay(1000);
-    i--;
-    Serial.print((9-i));
-    Serial.println("th digit printed");
-     Serial.println("+++++++++++++++++++");
-    
-  }
+    int arr[10]={0};
+    int i=9;
+    while(i>=0){
+        arr[(9-(i))]= (int(data/((pow(10,i))))) - (int(data/((pow(10,(i+1)))))*10);
+        //Serial.println((arr[(9-i)]));
+        leddisplay((arr[(9-i)]));
+        delay(900);
+        leddisplay(10);
+        delay(100);
+        leddisplay(11);
+        i--;
+        Serial.print((9-i));
+        Serial.println("th digit printed");
+        Serial.println("+++++++++++++++++++");
+    }
   leddisplay(10);
   delay(1000);
- 
-    Serial.println("End of function");
-     leddisplay(11);
-    Serial.println("/////////////");
-    
-  }
+        Serial.println("End of function");
+        leddisplay(11);
+        Serial.println("/////////////");
+   }
 
 
 
 //FUNCTION 4: this function operates the 7 segment display.
-
-  void leddisplay(int k){
-  int l=2;
+  void leddisplay(int k){           //where k is  the number to be displayed except: 10="-" and 11="OFF"
+  int l=2;      //l will be used to address the display pins as well as to call the array data.
   while(l <9){
-  Serial.println((statepan[k][(l-2)]));
+    Serial.println((statepan[k][(l-2)]));
     digitalWrite(l, ((statepan[k][(l-2)])));
     l++;
     Serial.println("----------");
-  }
-    
-    
+    } 
   }
