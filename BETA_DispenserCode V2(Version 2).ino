@@ -22,13 +22,15 @@ int regpin = A0;  //pin which is connected to potentiometer- designated to contr
 int red = A1;    //red led pin : designated to illuminate when memory reset function is activated.
 int green = A2; //green led pin : designated to illuminate when dispensing is activated
 int blue = A3;  //blue led pin : designated to blink in standby state
+int noderesetpin = A5;
+int node = 9;
 
 long counter=0;  //total time for which motor HAS dispensed the liquid so far.
 int rate= 5; //rate of flow for the pump in Ml/Sec
-long potval; //value of the potentiometer
+int potval; //value of the potentiometer
 int maxtime=2500; //the maximum caliberatable activation time for each pump cycle
 long timer;//timer is the pump activation time set using the potentiometer connected to regpin: min time is 10 milimeter,max time is 2.5 seconds right now.
-
+long limit=22000;
  
 
 //the following chart is for the coding of a 7 segment led display which will display counter when required
@@ -56,9 +58,11 @@ void setup() {
   for(int n=2; n<<9; n++){
   pinMode(n, OUTPUT);
   }
-  for(int n=2; n<<9; n++){
+ /* for(int n=2; n<<9; n++){
   digitalWrite(n, LOW);
-  }
+  
+  }*/
+  leddisplay(11);
  
   pinMode(pumpin, OUTPUT);
   pinMode(red, OUTPUT);
@@ -68,7 +72,7 @@ void setup() {
   pinMode(readpin, INPUT);
   pinMode(resetpin, INPUT);
   
-  digitalWrite(pumpin, LOW);//pump is set to it's off state
+  digitalWrite(pumpin, HIGH);//pump is set to it's off state
   Serial.begin(9600);   //serial communication is started at frequency 9600
 
 }
@@ -79,6 +83,7 @@ void loop() {
   potval=(analogRead(regpin));//value of potentiometer is read, to set the active time for pump per stimulus
   timer= ((maxtime/1023)*potval);
   //next is necessary LED indications.
+  
     digitalWrite(blue, HIGH);     //in standby state, the indicator is blue
     digitalWrite(green,LOW);     //green is off right now. blue will be replaced with green when machine is activated
     digitalWrite(red, LOW);      //red indicator is off right now, it'll be on when the reset function is activated.
@@ -90,7 +95,20 @@ void loop() {
        if((debounce(readpin))==HIGH){
           readfunction(counter);     
        }
-  
+       if ((analogRead(noderesetpin))>150){
+          digitalWrite(blue, LOW);
+          digitalWrite(red, HIGH);
+          delay(3000);    // it is required to hold the button for 3 seconds for the reset function to begin it's job
+          // after 3 seconds, another reading is taken, which, if matched HIGH, will reset the values
+           if((analogRead(noderesetpin))>150){ 
+                 digitalWrite(red, LOW);
+                 EEPROM.put(0,0);
+                 EEPROM.get(0,counter);
+                 delay(1000);
+            }
+           digitalWrite(blue, HIGH);          
+       }
+         
      // STEP 1-B: with every loop, the information about the current statistics is printed in the serial monitor
         Serial.print("Current value of counter is: ");
         Serial.println(counter);
@@ -110,15 +128,15 @@ void loop() {
 
 //STEP 2: the sensor status is checked and if activated, dispensor is activated 
       //STEP 2-A: sensor is checked
-         if((digitalRead(sensorpin))== HIGH){
+         if((digitalRead(sensorpin))== LOW){
       //STEP 2-B: necessary indicators are given/changed
-           if(counter<1900000050){      // i.e. normal pumping action.
+           if(counter<limit){      // i.e. normal pumping action.
              digitalWrite(blue,LOW);
              digitalWrite(green,HIGH);
       //STEP 2-C: pump is activated to begin the dispensing.
-            digitalWrite(pumpin, HIGH);
-            delay(timer);
             digitalWrite(pumpin, LOW);
+            delay(timer);
+            digitalWrite(pumpin, HIGH);
      // STEP 2-D: conter value is increased and EEPROM value is set to counter value.
             counter = counter+timer; 
             EEPROM.put(0, counter);
@@ -126,18 +144,20 @@ void loop() {
             digitalWrite(green,LOW);
             digitalWrite(blue,HIGH);
            }
-         if(counter>1900000050){  //i.e. pumping action for when the counter is full.
+         if(counter>limit){  //i.e. pumping action for when the counter is full.
              digitalWrite(blue,LOW);
              digitalWrite(red,HIGH);
-             digitalWrite(pumpin, HIGH);
-             delay(timer);
              digitalWrite(pumpin, LOW);
+             delay(timer);
+             digitalWrite(pumpin, HIGH);
+             analogWrite(node, 168);
              for(int s=1; s<=3;s++){
                 leddisplay(10);
                 delay(300);
                 leddisplay(11);
                 delay(300);
                }
+             analogWrite(node, 0);
              digitalWrite(red,LOW);
              digitalWrite(blue,HIGH);
            }
@@ -146,7 +166,7 @@ void loop() {
         
         else{
         //in lack of an activation from sensor, always pull the pump to off position.
-          digitalWrite(pumpin, LOW);         
+          digitalWrite(pumpin, HIGH);         
         }
          delay(100);
          digitalWrite(blue,LOW);
@@ -177,7 +197,8 @@ void reset(){
   if((debounce(resetpin)) == 1){ 
        digitalWrite(red, LOW);
        EEPROM.put(0,0);
-       EEPROM.get(0,counter);
+      
+      EEPROM.get(0,counter);
        delay(1000);
      }
   digitalWrite(blue, HIGH);
@@ -185,14 +206,14 @@ void reset(){
 
 
 //FUNCTION 3: this function will display the counter on a 7 segment display when activated with a button.
-  void readfunction(int data){
+  void readfunction(long data){
     leddisplay(11);
     delay(1000);
     int arr[10]={0};
     int i=9;
     while(i>=0){
         arr[(9-(i))]= (int(data/((pow(10,i))))) - (int(data/((pow(10,(i+1)))))*10);
-        //Serial.println((arr[(9-i)]));
+        //Serial.println("The value of this segment is:"+ (arr[(9-i)]));
         leddisplay((arr[(9-i)]));
         delay(900);
         leddisplay(10);
@@ -216,9 +237,10 @@ void reset(){
   void leddisplay(int k){           //where k is  the number to be displayed except: 10="-" and 11="OFF"
   int l=2;      //l will be used to address the display pins as well as to call the array data.
   while(l <9){
-    Serial.println((statepan[k][(l-2)]));
-    digitalWrite(l, ((statepan[k][(l-2)])));
+    Serial.println(!(statepan[k][(l-2)]));
+    digitalWrite(l, (!(statepan[k][(l-2)])));
     l++;
+    delay(10);
     Serial.println("----------");
     } 
   }
