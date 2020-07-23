@@ -34,18 +34,18 @@ long limit=22000;
  
 
 //the following chart is for the coding of a 7 segment led display which will display counter when required
-int statepan[12][7]={{1,1,1,1,1,1,0}, //0   //code is based on the circuit discussed at: https://www.allaboutcircuits.com/projects/interface-a-seven-segment-display-to-an-arduino/
-                     {0,1,1,0,0,0,0},  //1
-                     {1,1,0,1,1,0,1},  //2
-                     {1,1,1,1,0,0,1},  //3
-                     {0,1,1,0,0,1,1},  //4
-                     {1,0,1,1,0,1,1},  //5
-                     {1,0,1,1,1,1,1},  //6
-                     {1,1,1,0,0,0,0},  //7
-                     {1,1,1,1,1,1,1},  //8
-                     {1,1,1,1,0,1,1},  //9
-                     {0,0,0,0,0,0,1},  //-
-                     {0,0,0,0,0,0,0}}; //off.
+int statepan[12][7]={{0,0,0,0,0,0,1}, //0   //code is based on the circuit discussed at: https://www.allaboutcircuits.com/projects/interface-a-seven-segment-display-to-an-arduino/
+                     {1,0,0,1,1,1,1},  //1
+                     {0,0,1,0,0,1,0},  //2
+                     {0,0,0,0,1,1,0},  //3
+                     {1,0,0,1,1,0,0},  //4
+                     {0,1,0,0,1,0,0},  //5
+                     {0,1,0,0,0,0,0},  //6
+                     {0,0,0,1,1,1,1},  //7
+                     {0,0,0,0,0,0,0},  //8
+                     {0,0,0,0,1,0,0},  //9
+                     {1,1,1,1,1,1,0},  //-
+                     {1,1,1,1,1,1,1}}; //off.
 
 
 //********************************************************************************************************************
@@ -144,7 +144,7 @@ void loop() {
             digitalWrite(green,LOW);
             digitalWrite(blue,HIGH);
            }
-         if(counter>limit){  //i.e. pumping action for when the counter is full.
+         if(counter>=limit){  //i.e. pumping action for when the counter is full.
              digitalWrite(blue,LOW);
              digitalWrite(red,HIGH);
              digitalWrite(pumpin, LOW);
@@ -237,8 +237,8 @@ void reset(){
   void leddisplay(int k){           //where k is  the number to be displayed except: 10="-" and 11="OFF"
   int l=2;      //l will be used to address the display pins as well as to call the array data.
   while(l <9){
-    Serial.println(!(statepan[k][(l-2)]));
-    digitalWrite(l, (!(statepan[k][(l-2)])));
+    Serial.println((statepan[k][(l-2)]));
+    digitalWrite(l, ((statepan[k][(l-2)])));
     l++;
     delay(10);
     Serial.println("----------");
