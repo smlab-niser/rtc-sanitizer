@@ -1,9 +1,6 @@
 //                                    VERSION 2.
-//          !!!!!!!    "UNDER DEVELOPMENT". PLEASE USE VERSION 1 FOR NOW    !!!!!!!!
-//    VERSION 1 IS AVAILABLE AT: https://github.com/smlab-niser/rtc-sanitizer/edit/master/DispenserCode.ino
 
 //IN THIS VERSION, WE HAVE ADDED A 7 SEGMENT DISPLAY TO TAKE THE READING OF THE COUNTER WHEN REQUIRED.
-//THIS VERSION IS STILL UNDER DEVELOPMENT, AND THERE MIGHT BE BUGS.
 
 //AIM 1: Dispenser should be manually operatable if required.
 //AIM 2: Amount of the liquid being dispensed in automatic mode must be controlable.
