@@ -1,10 +1,16 @@
-//                                    VERSION 2.
-//          !!!!!!!    "UNDER DEVELOPMENT". PLEASE USE VERSION 1 FOR NOW    !!!!!!!!
-//    VERSION 1 IS AVAILABLE AT: https://github.com/smlab-niser/rtc-sanitizer/edit/master/DispenserCode.ino
+//                                    VERSION 3.
+// IN THIS VERSION, WE HAVE MADE THE CODE TO WORK TOGETHER WITH AN ESP8266 WIFI MODULE. THE ARDUINO IS 
+// SET TO TRIGGER THE WIFI MODULE UPON IT'S COUNTER REACHING/CROSSING A PARTICULAR VALUE OF DISPENSER ACTIVE TIME.
+// THE DISPENSER'S COUNTER IS RESETABLE THROUGHT THE WIFI MODULE FROM THE CONTROL ROOM SERVER ITSELF.
+// PINS 9 AND A5 ARE USED TO TRIGGER THE WIFI MODULE FOR LIMIT AND RECIEVE SIGNAL FROM WIFI MODULE FOR RESETTING RESPECTIVELY.
 
+
+//                                    VERSION 2.
 //IN THIS VERSION, WE HAVE ADDED A 7 SEGMENT DISPLAY TO TAKE THE READING OF THE COUNTER WHEN REQUIRED.
 //THIS VERSION IS STILL UNDER DEVELOPMENT, AND THERE MIGHT BE BUGS.
 
+
+//                                    VERSION 1.
 //AIM 1: Dispenser should be manually operatable if required.
 //AIM 2: Amount of the liquid being dispensed in automatic mode must be controlable.
 //AIM 3: A log of the dispensed amount should be maintained automatically.
