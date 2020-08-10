@@ -1,5 +1,3 @@
-
-
 #include<ESP8266WiFi.h>
 
 #define SendKey 0                       // ******DIDN'T UNDERSTAND WHY.
@@ -75,7 +73,7 @@ void loop()
     while(client.connected())
     {
 
-     if((digitalRead(trigger))== HIGH){
+     if((debounce(trigger))==HIGH){
       //limit is triggered in arduino
       client.print(devid);
       Serial.println("Mail trigger sent to server");
@@ -100,3 +98,10 @@ void loop()
   }
 
 }
+bool debounce(int pin){
+  bool A = digitalRead(pin);
+  delay(30);                // this delay makes it possible to take two readings at 30 milisecond gap for verification of a desired activation of the button
+  bool B = digitalRead(pin);
+  if(A == B){return A;}
+  else{debounce(pin);}
+  }
