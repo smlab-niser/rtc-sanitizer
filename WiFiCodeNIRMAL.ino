@@ -3,6 +3,8 @@
 #define SendKey 0                       // ******DIDN'T UNDERSTAND WHY.
 
 const char *devid = "NIRMAL-001";       //device ID
+const char *devpass = "7505";
+
 const char *server = "10.0.2.33";       //IP address of the server
 int port = 9003;                        // Port of communication between server and module.
 int resetword = 2312;                   //the number to be recieved when reset is is desired by the server
@@ -75,7 +77,7 @@ void loop()
 
      if((debounce(trigger))==HIGH){
       //limit is triggered in arduino
-      client.print(devid);
+      client.print((devpass + " " + devid + " " + "something" + " " + "something") );
       Serial.println("Mail trigger sent to server");
       delay(1000);
      }
